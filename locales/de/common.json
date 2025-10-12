@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "login": "Anmelden",
+    "home": "Startseite",
+    "dashboard": "Dashboard",
+    "application": "Bewerbung",
+    "studienkolleg": "Studienkolleg",
+    "university": "Universität",
+    "workAndLife": "Arbeit und Leben"
+  },
+  "footer": {
+    "lifeInGermany": {
+      "title": "Leben in Deutschland",
+      "housing": "Wohnung",
+      "work": "Arbeit",
+      "traveling": "Reisen",
+      "hobbies": "Hobbys"
+    },
+    "studyInGermany": {
+      "title": "Studieren in Deutschland",
+      "roadmap": "Fahrplan",
+      "application": "Bewerbung",
+      "nationalVisa": "Nationales Visum",
+      "studienkolleg": "Studienkolleg",
+      "university": "Universität"
+    },
+    "aboutUs": {
+      "title": "Über uns",
+      "team": "Team",
+      "goals": "Ziele",
+      "mission": "Mission",
+      "socials": "Soziale Medien"
+    },
+    "copyright": "© 2025 Studiwelt. Alle Rechte vorbehalten."
+  }
+}

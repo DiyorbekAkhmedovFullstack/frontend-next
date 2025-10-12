@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: 255 255 255;
+  --color-secondary: 0 0 0;
+  --color-bg: 10 10 10;
+  --color-bg-secondary: 26 26 26;
+  --color-bg-tertiary: 42 42 42;
+  --color-text: 255 255 255;
+  --color-text-secondary: 179 179 179;
+  --color-border: 51 51 51;
+  --color-accent: 255 255 255;
+}
+
+[data-theme='light'] {
+  --color-primary: 0 0 0;
+  --color-secondary: 255 255 255;
+  --color-bg: 255 255 255;
+  --color-bg-secondary: 245 245 245;
+  --color-bg-tertiary: 224 224 224;
+  --color-text: 0 0 0;
+  --color-text-secondary: 102 102 102;
+  --color-border: 224 224 224;
+  --color-accent: 0 0 0;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: rgb(var(--color-bg));
+  color: rgb(var(--color-text));
+  font-family: var(--font-sans);
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  overflow-x: hidden;
+}
+
+/* Custom animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.8s ease;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 1s ease;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1.2s ease;
+}
+
+/* Hero theme styles */
+.hero-image-filter {
+  filter: brightness(0.9) contrast(1.1);
+  transition: filter 0.3s ease;
+}
+
+[data-theme='light'] .hero-image-filter {
+  filter: brightness(1.1) contrast(1);
 }

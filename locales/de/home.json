@@ -1,0 +1,33 @@
+{
+  "hero": {
+    "badge": "WHERE MINDS MEET",
+    "title": "STUDIWELT",
+    "subtitle": "Alles, was Sie für eine erfolgreiche Reise durch die deutsche Hochschulbildung brauchen"
+  },
+  "features": {
+    "extensiveLibrary": {
+      "title": "Umfangreiche Bibliothek",
+      "description": "Studienkollegs, Universitäten, Leben in Deutschland und mehr"
+    },
+    "communityPower": {
+      "title": "Gemeinschaftskraft",
+      "description": "Teilen Sie Ihr Wissen und wachsen Sie gemeinsam"
+    },
+    "flexibleLearning": {
+      "title": "Flexibles Lernen",
+      "description": "Studieren Sie in Ihrem eigenen Tempo mit 24/7 Zugang zu Plattformmaterialien und Lernressourcen"
+    },
+    "trackProgress": {
+      "title": "Fortschritt verfolgen",
+      "description": "Folgen Sie der interaktiven Roadmap auf Ihrer Studienreise"
+    },
+    "expertInstructors": {
+      "title": "Experten-Dozenten",
+      "description": "Lernen Sie von Branchenprofis und erfahrenen Pädagogen mit nachgewiesener Erfolgsbilanz"
+    },
+    "personalSupport": {
+      "title": "Persönliche Unterstützung",
+      "description": "Sagen Sie uns, wenn Sie individuelle Hilfe benötigen"
+    }
+  }
+}

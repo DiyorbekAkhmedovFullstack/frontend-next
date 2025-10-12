@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "login": "Login",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "application": "Application",
+    "studienkolleg": "Studienkolleg",
+    "university": "University",
+    "workAndLife": "Work and Life"
+  },
+  "footer": {
+    "lifeInGermany": {
+      "title": "Life in Germany",
+      "housing": "Housing",
+      "work": "Work",
+      "traveling": "Traveling",
+      "hobbies": "Hobbies"
+    },
+    "studyInGermany": {
+      "title": "Study in Germany",
+      "roadmap": "Roadmap",
+      "application": "Application",
+      "nationalVisa": "National Visa",
+      "studienkolleg": "Studienkolleg",
+      "university": "University"
+    },
+    "aboutUs": {
+      "title": "About us",
+      "team": "Team",
+      "goals": "Goals",
+      "mission": "Mission",
+      "socials": "Socials"
+    },
+    "copyright": "© 2025 Studiwelt. All rights reserved."
+  }
+}

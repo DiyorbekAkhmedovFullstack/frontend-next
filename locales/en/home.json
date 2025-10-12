@@ -1,0 +1,33 @@
+{
+  "hero": {
+    "badge": "WHERE MINDS MEET",
+    "title": "STUDIWELT",
+    "subtitle": "Everything you need for successful journey through german higher education"
+  },
+  "features": {
+    "extensiveLibrary": {
+      "title": "Extensive Library",
+      "description": "Studienkollegs, Universities, Life in Germany and more"
+    },
+    "communityPower": {
+      "title": "Community Power",
+      "description": "Share your knowledge and grow together"
+    },
+    "flexibleLearning": {
+      "title": "Flexible Learning",
+      "description": "Study at your own pace with 24/7 access to platform materials and learning resources"
+    },
+    "trackProgress": {
+      "title": "Track Progress",
+      "description": "Follow interactive roadmap on your study journey"
+    },
+    "expertInstructors": {
+      "title": "Expert Instructors",
+      "description": "Learn from industry professionals and experienced educators with proven track records"
+    },
+    "personalSupport": {
+      "title": "Personal Support",
+      "description": "Tell us if you need individual help"
+    }
+  }
+}

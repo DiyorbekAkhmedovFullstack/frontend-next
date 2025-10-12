@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "login": "Войти",
+    "home": "Главная",
+    "dashboard": "Панель управления",
+    "application": "Заявка",
+    "studienkolleg": "Studienkolleg",
+    "university": "Университет",
+    "workAndLife": "Работа и жизнь"
+  },
+  "footer": {
+    "lifeInGermany": {
+      "title": "Жизнь в Германии",
+      "housing": "Жильё",
+      "work": "Работа",
+      "traveling": "Путешествия",
+      "hobbies": "Хобби"
+    },
+    "studyInGermany": {
+      "title": "Учёба в Германии",
+      "roadmap": "Дорожная карта",
+      "application": "Заявка",
+      "nationalVisa": "Национальная виза",
+      "studienkolleg": "Studienkolleg",
+      "university": "Университет"
+    },
+    "aboutUs": {
+      "title": "О нас",
+      "team": "Команда",
+      "goals": "Цели",
+      "mission": "Миссия",
+      "socials": "Социальные сети"
+    },
+    "copyright": "© 2025 Studiwelt. Все права защищены."
+  }
+}
