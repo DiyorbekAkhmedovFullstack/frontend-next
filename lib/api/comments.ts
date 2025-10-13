@@ -7,12 +7,21 @@ import type {
   UpdateCommentRequest,
 } from '@/types/comment';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+// Get API URL - check window first for runtime config, fallback to build-time env
+function getApiBaseUrl(): string {
+  // In browser, check if there's a runtime config
+  if (typeof window !== 'undefined' && (window as any).__API_URL__) {
+    return (window as any).__API_URL__;
+  }
+  // Fallback to environment variable (build-time)
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+}
 
 async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+  const API_BASE_URL = getApiBaseUrl();
   const url = `${API_BASE_URL}${endpoint}`;
 
   // Get access token from cookie

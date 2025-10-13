@@ -34,6 +34,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__API_URL__ = '${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}';`,
+          }}
+        />
       </head>
       <body className={`${inter.variable} antialiased`}>
         <I18nProvider>
