@@ -1,13 +1,27 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { Suspense } from 'react';
+import { useState, FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { ApiError } from '@/lib/api/client';
 
 export default function RegisterPage() {
-  const router = useRouter();
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[rgb(var(--color-bg))]">
+          <div className="text-[rgb(var(--color-text-secondary))]">Loading registration...</div>
+        </div>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
+  );
+}
+
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const { register } = useAuthStore();
 
