@@ -3,111 +3,31 @@ import type {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
+  LoginResponse,
   PasswordResetRequest,
   PasswordResetConfirmRequest,
-  RefreshTokenRequest,
 } from '@/types';
-import Cookies from 'js-cookie';
+import { ApiError, getApiBaseUrl, httpFetch } from '@/lib/api/http';
 
-// Get API URL - check window first for runtime config, fallback to build-time env
-function getApiBaseUrl(): string {
-  // In browser, check if there's a runtime config
-  if (typeof window !== 'undefined' && (window as any).__API_URL__) {
-    return (window as any).__API_URL__;
-  }
-  // Fallback to environment variable (build-time)
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-}
-
-class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public errors?: Record<string, string>
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-// Get access token from cookie
-function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return Cookies.get('accessToken') || null;
-}
-
-async function fetchApi<T>(
+const fetchApi = async <T>(
   endpoint: string,
   options: RequestInit = {},
   skipAuth = false
-): Promise<ApiResponse<T>> {
-  const API_BASE_URL = getApiBaseUrl();
-  const url = `${API_BASE_URL}${endpoint}`;
+): Promise<ApiResponse<T>> => httpFetch<T>(endpoint, { ...options, skipAuth });
 
-  // Prepare headers
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  // Add Authorization header for authenticated requests
-  if (!skipAuth) {
-    const token = getAccessToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
-  // Merge with provided headers
-  if (options.headers) {
-    Object.assign(headers, options.headers);
-  }
-
-  const config: RequestInit = {
-    ...options,
-    headers,
-    credentials: 'include', // Important for HttpOnly cookies
-  };
-
-  try {
-    const response = await fetch(url, config);
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Handle 401 Unauthorized - token expired or invalid
-      if (response.status === 401) {
-        // Token might be expired, try to refresh
-        if (!skipAuth && !endpoint.includes('/auth/refresh')) {
-          // Attempt token refresh will be handled by the auth store
-          throw new ApiError('Session expired. Please log in again.', 401);
-        }
-      }
-
-      // Handle validation errors
-      if (data.errors) {
-        throw new ApiError(data.message || 'Validation failed', response.status, data.errors);
-      }
-      throw new ApiError(data.message || 'Request failed', response.status);
-    }
-
-    return data;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    throw new ApiError('Network error occurred', 500);
-  }
-}
-
-// Auth API
 export const authApi = {
-  async register(data: RegisterRequest): Promise<ApiResponse<void>> {
+  async register(data: RegisterRequest, passwordToken?: string): Promise<ApiResponse<void>> {
+    const requestBody = passwordToken
+      ? { ...data, passwordToken }
+      : data;
+
     return fetchApi('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestBody),
     }, true); // Skip auth - public endpoint
   },
 
-  async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+  async login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     return fetchApi('/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -134,17 +54,15 @@ export const authApi = {
     }, true); // Skip auth - public endpoint
   },
 
-  async refreshToken(data: RefreshTokenRequest): Promise<ApiResponse<AuthResponse>> {
+  async refreshToken(): Promise<ApiResponse<AuthResponse>> {
     return fetchApi('/auth/refresh', {
       method: 'POST',
-      body: JSON.stringify(data),
-    }, true); // Skip auth - uses refresh token instead
+    }, true); // Skip auth - uses refresh token cookie instead
   },
 
-  async logout(refreshToken: string): Promise<ApiResponse<void>> {
+  async logout(): Promise<ApiResponse<void>> {
     return fetchApi('/auth/logout', {
       method: 'POST',
-      body: JSON.stringify({ refreshToken }),
     }); // Requires auth
   },
 };
@@ -164,7 +82,7 @@ export const protectedApi = {
   async getUserProfile(): Promise<ApiResponse<any>> {
     return fetchApi('/user/profile', {
       method: 'GET',
-    }); // Will automatically include Authorization header
+    }); // Authentication cookies are sent automatically
   },
 
   // Example: Update user profile
@@ -172,7 +90,7 @@ export const protectedApi = {
     return fetchApi('/user/profile', {
       method: 'PUT',
       body: JSON.stringify(data),
-    }); // Will automatically include Authorization header
+    }); // Authentication cookies are sent automatically
   },
 };
 

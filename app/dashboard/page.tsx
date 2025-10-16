@@ -1,42 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import Cookies from 'js-cookie';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, user, logout, setAccessToken } = useAuthStore();
-  const [isChecking, setIsChecking] = useState(true);
+  const { isAuthenticated, user, logout, initialized } = useAuthStore();
 
   useEffect(() => {
-    // Check if we have a valid token in cookies
-    const token = Cookies.get('accessToken');
-
-    if (token && !isAuthenticated) {
-      // We have a token but auth state not loaded yet
-      // Restore the token to auth store
-      setAccessToken(token);
-      setIsChecking(false);
-    } else if (!token && !isAuthenticated) {
-      // No token and not authenticated - redirect to login
-      router.push('/auth/login');
-    } else {
-      // Already authenticated
-      setIsChecking(false);
+    if (!initialized) {
+      return;
     }
-  }, [isAuthenticated, router, setAccessToken]);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/');
-  };
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [initialized, isAuthenticated, router]);
 
-  // Show loading while checking authentication
-  if (isChecking) {
+  if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--color-bg))]">
         <div className="w-16 h-16 border-4 border-[rgb(var(--color-border))] border-t-[rgb(var(--color-primary))] rounded-full animate-spin"></div>
@@ -47,6 +31,11 @@ export default function DashboardPage() {
   if (!isAuthenticated || !user) {
     return null;
   }
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
 
   return (
     <>

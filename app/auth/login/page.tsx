@@ -21,8 +21,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const response = await login(email, password);
+
+      if (response.userExists && response.authData) {
+        // User authenticated - redirect to dashboard
+        router.push('/dashboard');
+      } else if (!response.userExists && response.preRegistrationData) {
+        // User doesn't exist - redirect to registration with pre-filled data
+        const { email: prefilledEmail, passwordToken } = response.preRegistrationData;
+        router.push(`/auth/register?email=${encodeURIComponent(prefilledEmail)}&token=${encodeURIComponent(passwordToken)}`);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

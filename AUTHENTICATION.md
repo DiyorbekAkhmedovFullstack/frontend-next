@@ -2,36 +2,36 @@
 
 ## Overview
 
-The StudiWelt frontend uses **JWT-based authentication** with automatic token management. All authenticated requests automatically include the `Authorization: Bearer <token>` header.
+The StudiWelt frontend uses **JWT-based authentication** with automatic token management. Both access and refresh tokens live in HttpOnly cookies, so authenticated requests work as long as the browser sends cookies with each call.
 
 ## How It Works
 
 ### Token Flow
 
 1. **Login** → User enters credentials
-2. **Backend Response** → Returns access token (15 min) and sets HttpOnly refresh token cookie (7 days)
-3. **Token Storage** → Access token stored in cookie for automatic inclusion
-4. **API Requests** → All protected endpoints automatically include `Authorization` header
+2. **Backend Response** → Returns session metadata and sets HttpOnly cookies for access (15 min) and refresh (7 days) tokens
+3. **Token Storage** → Cookies are managed by the browser; JavaScript never sees the raw tokens
+4. **API Requests** → `fetch` calls include cookies automatically (`credentials: 'include'`)
 5. **Token Refresh** → Automatic refresh before expiration
 
 ### Token Storage
 
 | Token Type | Storage | Duration | Purpose |
 |------------|---------|----------|---------|
-| Access Token | Cookie (`accessToken`) | 15 minutes | API authentication |
-| Refresh Token | HttpOnly Cookie (backend) | 7 days | Refresh access token |
+| Access Token | HttpOnly Cookie (`accessToken`) | 15 minutes | API authentication |
+| Refresh Token | HttpOnly Cookie (`refreshToken`) | 7 days | Refresh access token |
 | User Data | LocalStorage (Zustand) | Persistent | UI state |
 
 ## Usage Examples
 
 ### Making Authenticated Requests
 
-All API calls through `fetchApi()` automatically include the auth token:
+All API calls through `fetchApi()` automatically include authentication cookies:
 
 ```typescript
 import { protectedApi } from '@/lib/api/client';
 
-// ✅ Automatically includes Authorization header
+// ✅ Automatically includes authentication cookies
 const profile = await protectedApi.getUserProfile();
 
 // ✅ Works for all HTTP methods
@@ -88,7 +88,6 @@ export const yourApi = {
 ### fetchApi Function
 
 The `fetchApi` function automatically:
-- ✅ Adds `Authorization: Bearer <token>` header
 - ✅ Includes credentials for cookies
 - ✅ Handles 401 Unauthorized errors
 - ✅ Parses JSON responses
@@ -100,7 +99,7 @@ The `fetchApi` function automatically:
 fetchApi<T>(
   endpoint: string,      // e.g., '/user/profile'
   options: RequestInit,  // fetch options
-  skipAuth?: boolean     // true = don't add Authorization header
+  skipAuth?: boolean     // true = avoid triggering refresh logic
 )
 ```
 
@@ -129,9 +128,9 @@ try {
 
 The `AuthProvider` component handles automatic token refresh:
 
-- ✅ Checks every 5 minutes
-- ✅ Refreshes token if expired
-- ✅ Logs out user if refresh fails
+- ✅ Attempts a refresh on initial load if cookies exist
+- ✅ Schedules proactive refresh ~1 minute before access token expiry
+- ✅ Clears client state if refresh fails (cookies are already invalidated server-side)
 
 ### Manual Refresh
 
@@ -153,36 +152,22 @@ Create a protected page that handles direct access correctly:
 ```typescript
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import Cookies from 'js-cookie';
 
 export default function ProtectedPage() {
   const router = useRouter();
-  const { isAuthenticated, user, setAccessToken } = useAuthStore();
-  const [isChecking, setIsChecking] = useState(true);
+  const { isAuthenticated, user, initialized } = useAuthStore();
 
   useEffect(() => {
-    // Check if we have a valid token in cookies
-    const token = Cookies.get('accessToken');
-
-    if (token && !isAuthenticated) {
-      // We have a token but auth state not loaded yet
-      // Restore the token to auth store
-      setAccessToken(token);
-      setIsChecking(false);
-    } else if (!token && !isAuthenticated) {
-      // No token and not authenticated - redirect to login
+    if (!initialized) return;
+    if (!isAuthenticated) {
       router.push('/auth/login');
-    } else {
-      // Already authenticated
-      setIsChecking(false);
     }
-  }, [isAuthenticated, router, setAccessToken]);
+  }, [initialized, isAuthenticated, router]);
 
-  // Show loading while checking authentication
-  if (isChecking) {
+  if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
@@ -199,10 +184,9 @@ export default function ProtectedPage() {
 ```
 
 **Why this pattern?**
-- ✅ Checks for token in cookies before redirecting
-- ✅ Restores token to auth store if found
-- ✅ Shows loading spinner during auth check
-- ✅ Prevents premature redirects on direct access
+- ✅ Waits for initial session check before redirecting
+- ✅ Respects automatic cookie-based authentication
+- ✅ Shows loading spinner during bootstrapping
 - ✅ Works with browser refresh and direct navigation
 
 ## Security Best Practices
@@ -211,7 +195,7 @@ export default function ProtectedPage() {
 
 1. **HttpOnly Cookies** - Refresh tokens in HttpOnly cookies (XSS protection)
 2. **Short-lived Tokens** - Access tokens expire in 15 minutes
-3. **Secure Headers** - Authorization header only on authenticated requests
+3. **Cookie Credentials** - Auth cookies sent only on same-site requests with `credentials: 'include'`
 4. **CORS** - Backend validates origin
 5. **Token Rotation** - New tokens on refresh
 
@@ -278,11 +262,7 @@ cd frontend-next && npm run dev
 
 ### Test Token in Requests
 
-Open DevTools > Network > Select any API request > Headers:
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+Open DevTools > Network > Select any API request > Headers. Under *Request Headers* you should see a `Cookie` entry containing `accessToken=<...>` and `refreshToken=<...>` values (flagged as HttpOnly).
 
 ## Architecture
 
@@ -295,7 +275,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 │                    ↓                            │
 │              fetchApi()                         │
 │                    ↓                            │
-│        Add Authorization: Bearer <token>        │
+│          Send with credentials: 'include'       │
 │                    ↓                            │
 │            fetch(API_URL)                       │
 │                                                 │

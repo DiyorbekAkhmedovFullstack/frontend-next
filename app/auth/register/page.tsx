@@ -1,18 +1,24 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { ApiError } from '@/lib/api/client';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register } = useAuthStore();
 
+  // Extract pre-filled data from URL params (from login redirect)
+  const prefilledEmail = searchParams.get('email') || '';
+  const passwordToken = searchParams.get('token') || '';
+  const isPreFilled = !!prefilledEmail && !!passwordToken;
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: prefilledEmail,
+    password: '', // Not displayed when pre-filled
     firstName: '',
     lastName: '',
   });
@@ -28,7 +34,8 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await register(formData);
+      // Pass password token if registration is from login redirect
+      await register(formData, isPreFilled ? passwordToken : undefined);
       setSuccess(true);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -50,9 +57,9 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[rgb(var(--color-bg))]">
         <div className="w-full max-w-md">
           <div className="bg-[rgb(var(--color-bg-secondary))] border border-[rgb(var(--color-border))] rounded-lg p-8 shadow-lg text-center">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <h2 className="text-2xl font-bold mb-2">Registration Successful!</h2>
@@ -75,11 +82,57 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[rgb(var(--color-bg))]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-          <p className="text-[rgb(var(--color-text-secondary))]">Join StudiWelt community today</p>
+          <h1 className="text-3xl font-bold mb-2">
+            {isPreFilled ? 'Complete Registration' : 'Create Account'}
+          </h1>
+          <p className="text-[rgb(var(--color-text-secondary))]">
+            {isPreFilled
+              ? 'Just a few more details to get started'
+              : 'Join StudiWelt community today'}
+          </p>
         </div>
 
-        <div className="bg-[rgb(var(--color-bg-secondary))] border border-[rgb(var(--color-border))] rounded-lg p-8 shadow-lg">
+        {isPreFilled && (
+          <div className="mb-5 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/40 text-center">
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                <svg
+                  className="w-5 h-5 text-yellow-500 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-[rgb(var(--color-text))]">Email not registered</span>
+              </div>
+
+              <div>
+                <div className="inline-block p-2 bg-black/20 rounded border border-yellow-500/30 max-w-full">
+                  <p className="text-xs font-mono text-yellow-400 break-all">{prefilledEmail}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-[rgb(var(--color-text-secondary))] leading-relaxed">
+                  Check if correct or{' '}
+                  <a href="/auth/login" className="text-[rgb(var(--color-primary))] underline">
+                    go back
+                  </a>
+                  . Password saved—add your name below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-[rgb(var(--color-bg-secondary))] border border-[rgb(var(--color-border))] rounded-lg p-5 sm:p-8 shadow-lg">
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="p-3 rounded-md bg-red-500/10 border border-red-500/50 text-red-500 text-sm">
@@ -133,7 +186,8 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full px-4 py-3 bg-[rgb(var(--color-bg-tertiary))] border border-[rgb(var(--color-border))] rounded-md focus:outline-none focus:border-[rgb(var(--color-primary))] transition-colors"
+                disabled={isPreFilled}
+                className="w-full px-4 py-3 bg-[rgb(var(--color-bg-tertiary))] border border-[rgb(var(--color-border))] rounded-md focus:outline-none focus:border-[rgb(var(--color-primary))] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 placeholder="your@email.com"
               />
               {validationErrors.email && (
@@ -141,26 +195,28 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                className="w-full px-4 py-3 bg-[rgb(var(--color-bg-tertiary))] border border-[rgb(var(--color-border))] rounded-md focus:outline-none focus:border-[rgb(var(--color-primary))] transition-colors"
-                placeholder="••••••••"
-              />
-              {validationErrors.password && (
-                <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
-              )}
-              <p className="text-xs text-[rgb(var(--color-text-secondary))] mt-1">
-                Minimum 8 characters
-              </p>
-            </div>
+            {!isPreFilled && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 bg-[rgb(var(--color-bg-tertiary))] border border-[rgb(var(--color-border))] rounded-md focus:outline-none focus:border-[rgb(var(--color-primary))] transition-colors"
+                  placeholder="••••••••"
+                />
+                {validationErrors.password && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
+                )}
+                <p className="text-xs text-[rgb(var(--color-text-secondary))] mt-1">
+                  Minimum 8 characters
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"

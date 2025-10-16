@@ -2,29 +2,36 @@
 
 import { useEffect } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import Cookies from 'js-cookie';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user, accessToken } = useAuthStore();
+  const { user, accessTokenExpiresAt, initialized } = useAuthStore();
 
+  // Attempt to bootstrap the session on first render
   useEffect(() => {
-    // Set up token refresh interval
-    // This will automatically refresh the token before it expires
-    const refreshInterval = setInterval(() => {
-      const currentToken = Cookies.get('accessToken');
-      const refreshToken = Cookies.get('refreshToken');
+    if (!initialized) {
+      useAuthStore.getState().refreshToken().catch(() => {
+        // Silently ignore – absence of a refresh cookie simply means no session
+      });
+    }
+  }, [initialized]);
 
-      // If we have user but no access token, try to refresh
-      if (user && !currentToken && refreshToken) {
-        useAuthStore.getState().refreshToken().catch((error) => {
-          // Silent fail - user will be logged out if refresh fails
-          console.log('Token refresh failed - user needs to login again');
-        });
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+  // Schedule proactive refresh based on the stored expiry time
+  useEffect(() => {
+    if (!user || !accessTokenExpiresAt) {
+      return;
+    }
 
-    return () => clearInterval(refreshInterval);
-  }, [user, accessToken]);
+    const now = Date.now();
+    const refreshDelay = Math.max(accessTokenExpiresAt - now - 60_000, 5_000); // refresh 1 minute early
+
+    const timer = setTimeout(() => {
+      useAuthStore.getState().refreshToken().catch(() => {
+        console.log('Token refresh failed - user needs to login again');
+      });
+    }, refreshDelay);
+
+    return () => clearTimeout(timer);
+  }, [user, accessTokenExpiresAt]);
 
   return <>{children}</>;
 }

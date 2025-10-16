@@ -39,10 +39,6 @@ export interface PasswordResetConfirmRequest {
   newPassword: string;
 }
 
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
 // User Models
 export interface UserDto {
   id: number;
@@ -55,23 +51,35 @@ export interface UserDto {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
   tokenType: string;
   expiresIn: number; // in seconds
   user: UserDto;
 }
 
+export interface PreRegistrationData {
+  email: string;
+  passwordToken: string;
+}
+
+export interface LoginResponse {
+  userExists: boolean;
+  authData?: AuthResponse;
+  preRegistrationData?: PreRegistrationData;
+}
+
 // Client-side auth state
 export interface AuthState {
   user: UserDto | null;
-  accessToken: string | null;
+  accessTokenExpiresAt: number | null;
+  initialized: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (email: string, password: string) => Promise<LoginResponse>;
+  register: (data: RegisterRequest, passwordToken?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   setUser: (user: UserDto | null) => void;
-  setAccessToken: (token: string | null) => void;
 }
 
 // Theme types
