@@ -2,6 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { SupportedLanguage, DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from './config';
+import enCommon from '@/locales/en/common.json';
+import enHome from '@/locales/en/home.json';
+import enAuth from '@/locales/en/auth.json';
 
 interface I18nContextType {
   language: SupportedLanguage;
@@ -17,7 +20,11 @@ interface I18nProviderProps {
 
 export function I18nProvider({ children }: I18nProviderProps) {
   const [language, setLanguageState] = useState<SupportedLanguage>(DEFAULT_LANGUAGE);
-  const [translations, setTranslations] = useState<Record<string, any>>({});
+  const [translations, setTranslations] = useState<Record<string, any>>({
+    ...enCommon,
+    ...enHome,
+    ...enAuth,
+  });
 
   useEffect(() => {
     // Load language from localStorage on mount
@@ -31,9 +38,11 @@ export function I18nProvider({ children }: I18nProviderProps) {
     // Load translations when language changes
     const loadTranslations = async () => {
       try {
-        const common = await import(`@/locales/${language}/common.json`);
-        const home = await import(`@/locales/${language}/home.json`);
-        const auth = await import(`@/locales/${language}/auth.json`);
+        const [common, home, auth] = await Promise.all([
+          import(`@/locales/${language}/common.json`),
+          import(`@/locales/${language}/home.json`),
+          import(`@/locales/${language}/auth.json`),
+        ]);
 
         setTranslations({
           ...common.default,
@@ -42,6 +51,11 @@ export function I18nProvider({ children }: I18nProviderProps) {
         });
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
+        setTranslations({
+          ...enCommon,
+          ...enHome,
+          ...enAuth,
+        });
       }
     };
 

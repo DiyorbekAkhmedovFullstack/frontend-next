@@ -25,28 +25,30 @@ export const useAuthStore = create<AuthState>()(
         try {
           const sanitizedEmail = sanitizeEmail(email);
           const response = await authApi.login({ email: sanitizedEmail, password });
+          const loginData = response.data;
 
-          if (response.data) {
-            if (response.data.userExists && response.data.authData) {
-              // Normal login - user exists
-              const { user, expiresIn } = response.data.authData;
+          if (!loginData) {
+            set({ isLoading: false, initialized: true });
+            return { userExists: false };
+          }
 
-              set({
-                user,
-                isAuthenticated: true,
-                isLoading: false,
-                accessTokenExpiresAt: Date.now() + expiresIn * 1000,
-                initialized: true,
-              });
-            } else {
-              // User doesn't exist - return pre-registration data for redirect
-              set({ isLoading: false, initialized: true });
-            }
+          if (loginData.userExists && loginData.authData) {
+            // Normal login - user exists
+            const { user, expiresIn } = loginData.authData;
+
+            set({
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+              accessTokenExpiresAt: Date.now() + expiresIn * 1000,
+              initialized: true,
+            });
           } else {
+            // User doesn't exist - return pre-registration data for redirect
             set({ isLoading: false, initialized: true });
           }
 
-          return response.data;
+          return loginData;
         } catch (error) {
           set({ isLoading: false });
           throw error;
