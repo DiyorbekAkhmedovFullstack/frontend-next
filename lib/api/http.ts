@@ -2,11 +2,11 @@ import type { ApiResponse } from '@/types';
 
 // Determine API base URL (runtime override first)
 export function getApiBaseUrl(): string {
-  // In production with proxy, use relative URLs to same domain
+  // In production with proxy, use /api prefix for Next.js rewrites
   if (typeof window !== 'undefined') {
     const runtimeUrl = (window as any).__API_URL__;
     if (runtimeUrl === 'SAME_ORIGIN') {
-      return ''; // Use relative URLs - same origin
+      return '/api'; // Relative path that matches Next.js rewrite rule
     }
     if (runtimeUrl) {
       return runtimeUrl;
