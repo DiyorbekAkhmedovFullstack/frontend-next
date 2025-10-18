@@ -41,19 +41,19 @@ export interface PasswordResetConfirmRequest {
 
 // User Models
 export interface UserDto {
-  id: number;
+  id: number; // Long in Java
   email: string;
   firstName: string;
   lastName: string;
-  emailVerified: boolean;
-  roles: string[];
+  emailVerified: boolean; // boolean in Java
+  roles: string[]; // Set<String> in Java, serialized as array
 }
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
+  // Note: refreshToken is NOT included in JSON response - it's HttpOnly cookie only
   tokenType: string;
-  expiresIn: number; // in seconds
+  expiresIn: number; // in seconds (Long in Java)
   user: UserDto;
 }
 
