@@ -36,7 +36,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__API_URL__ = ${JSON.stringify(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api')};`,
+            __html: `window.__API_URL__ = ${JSON.stringify(
+              process.env.NEXT_PUBLIC_USE_PROXY === 'true'
+                ? 'SAME_ORIGIN'
+                : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+            )};`,
           }}
         />
       </head>

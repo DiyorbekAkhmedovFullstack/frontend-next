@@ -2,8 +2,15 @@ import type { ApiResponse } from '@/types';
 
 // Determine API base URL (runtime override first)
 export function getApiBaseUrl(): string {
-  if (typeof window !== 'undefined' && (window as any).__API_URL__) {
-    return (window as any).__API_URL__;
+  // In production with proxy, use relative URLs to same domain
+  if (typeof window !== 'undefined') {
+    const runtimeUrl = (window as any).__API_URL__;
+    if (runtimeUrl === 'SAME_ORIGIN') {
+      return ''; // Use relative URLs - same origin
+    }
+    if (runtimeUrl) {
+      return runtimeUrl;
+    }
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 }
